@@ -15,30 +15,33 @@ void setup() {
 
   LoRa.setPins(LORA_NSS_PIN, LORA_RESET_PIN, LORA_DIO0_PIN);
 
-  if (!LoRa.begin(LORA_FREQUENCY)) {
+  if (!LoRa.begin(433E6)) {
     Serial.println("Starting LoRa failed!");
     while (1);
   }
 
   // Force matching RF settings
-  LoRa.setSyncWord(0xF3);           // Unique network ID (0-255)
-  LoRa.setTxPower(17);              // Default power
-
+  LoRa.setFrequency(433000000);
+  LoRa.setSpreadingFactor(9);
+  LoRa.setSignalBandwidth(125E3);
+  LoRa.setTxPower(17, PA_OUTPUT_PA_BOOST_PIN);
+  LoRa.setSyncWord(0x12); // Default sync word
+  
   Serial.println("LoRa Sender Node");
 }
 
+int counter = 0;
 void loop() {
-  if (Serial.available()) {
-    String customMessage = Serial.readStringUntil('\n');
-    customMessage.trim(); // Remove any extra newline characters
+  String customMessage = "Test Packet ";
+  customMessage += String(counter);
+  
+  Serial.print("Sending: ");
+  Serial.println(customMessage);
 
-    if (customMessage.length() > 0) {
-      Serial.print("Sending packet: ");
-      Serial.println(customMessage);
+  LoRa.beginPacket();
+  LoRa.print(customMessage);
+  LoRa.endPacket();
 
-      LoRa.beginPacket();
-      LoRa.print(customMessage);
-      LoRa.endPacket();
-    }
-  }
+  counter++;
+  delay(3000);
 }

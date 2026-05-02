@@ -29,23 +29,31 @@ void setup() {
 
   LoRa.setPins(LORA_NSS_PIN, LORA_RESET_PIN, LORA_DIO0_PIN);
 
-  if (!LoRa.begin(LORA_FREQUENCY)) {
+  if (!LoRa.begin(433E6)) {
     Serial.println("Starting LoRa failed!");
     while (1);
   }
 
   // Force matching RF settings
-  LoRa.setSyncWord(0xF3);           // Unique network ID (0-255)
-  LoRa.setTxPower(17);              // Default power
-
-  // Register the receive callback
-  LoRa.onReceive(onReceive);
-  // Put the radio into continuous receive mode
-  LoRa.receive();
+  LoRa.setFrequency(433000000);
+  LoRa.setSpreadingFactor(9);
+  LoRa.setSignalBandwidth(125E3);
+  LoRa.setTxPower(17, PA_OUTPUT_PA_BOOST_PIN);
+  LoRa.setSyncWord(0x12); // Default sync word
 
   Serial.println("LoRa Receiver Node");
 }
 
 void loop() {
-  // Do nothing in loop, the interrupt will handle incoming packets
+  int packetSize = LoRa.parsePacket();
+  if (packetSize) {
+    String receivedText = "";
+    while (LoRa.available()) {
+      receivedText += (char)LoRa.read();
+    }
+    Serial.print("Received packet '");
+    Serial.print(receivedText);
+    Serial.print("' with RSSI ");
+    Serial.println(LoRa.packetRssi());
+  }
 }
