@@ -9,6 +9,20 @@
 
 #define LORA_RECEIVER
 
+void onReceive(int packetSize) {
+  if (packetSize == 0) return;          // if there's no packet, return
+
+  String receivedText = "";
+  while (LoRa.available()) {
+    receivedText += (char)LoRa.read();
+  }
+
+  Serial.print("Received packet '");
+  Serial.print(receivedText);
+  Serial.print("' with RSSI ");
+  Serial.println(LoRa.packetRssi());
+}
+
 void setup() {
   Serial.begin(115200);
   while (!Serial);
@@ -24,19 +38,14 @@ void setup() {
   LoRa.setSyncWord(0xF3);           // Unique network ID (0-255)
   LoRa.setTxPower(17);              // Default power
 
+  // Register the receive callback
+  LoRa.onReceive(onReceive);
+  // Put the radio into continuous receive mode
+  LoRa.receive();
+
   Serial.println("LoRa Receiver Node");
 }
 
 void loop() {
-  int packetSize = LoRa.parsePacket();
-  if (packetSize) {
-    String receivedText = "";
-    while (LoRa.available()) {
-      receivedText += (char)LoRa.read();
-    }
-    Serial.print("Received packet '");
-    Serial.print(receivedText);
-    Serial.print("' with RSSI ");
-    Serial.println(LoRa.packetRssi());
-  }
+  // Do nothing in loop, the interrupt will handle incoming packets
 }
