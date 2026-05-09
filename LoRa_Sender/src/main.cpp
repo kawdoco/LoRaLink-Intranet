@@ -30,18 +30,18 @@ void setup() {
   Serial.println("LoRa Sender Node");
 }
 
-int counter = 0;
 void loop() {
-  String customMessage = "Test Packet ";
-  customMessage += String(counter);
-  
-  Serial.print("Sending: ");
-  Serial.println(customMessage);
+  if (Serial.available()) {
+    String customMessage = Serial.readStringUntil('\n');
+    customMessage.trim(); // Remove whitespace or newline characters
+    
+    if (customMessage.length() > 0) {
+      Serial.print("Sending: ");
+      Serial.println(customMessage);
 
-  LoRa.beginPacket();
-  LoRa.print(customMessage);
-  LoRa.endPacket();
-
-  counter++;
-  delay(3000);
+      LoRa.beginPacket();
+      LoRa.print(customMessage);
+      LoRa.endPacket();
+    }
+  }
 }
